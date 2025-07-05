@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Catch the Virus 🦠</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #ffefba, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      width: 100%;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      color: #e91e63;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      background-color: #4caf50;
+      color: white;
+      cursor: pointer;
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
+    button:hover, button:active {
+      transform: scale(1.05);
+      background-color: #388e3c;
+    }
+
+    #game-area {
+      position: relative;
+      width: 100%;
+      max-width: 500px;
+      height: 500px;
+      margin: 20px auto;
+      background-color: #fff3cd;
+      border: 4px dashed #ff9800;
+      border-radius: 15px;
+      overflow: hidden;
+    }
+
+    .virus {
+      position: absolute;
+      font-size: 3rem;
+      cursor: pointer;
+      animation: pop 0.3s ease, fadeout 1.5s forwards;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0); }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes fadeout {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: space-around;
+      width: 100%;
+      max-width: 500px;
+      margin-top: 10px;
+      font-size: 1.3rem;
+    }
+
+    .bounce {
+      animation: bounce 0.3s ease;
+    }
+
+    @keyframes bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.4); }
+      100% { transform: scale(1); }
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      button { font-size: 1rem; padding: 12px 24px; }
+      .virus { font-size: 2.2rem; }
+      #game-area { height: 350px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Start Screen -->
+  <div class="screen active" id="start-screen">
+    <h1>Catch the Virus 🦠</h1>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="screen" id="game-screen">
+    <div class="scoreboard">
+      <div>Score: <span id="score">0</span></div>
+      <div>Time: <span id="timer">30</span>s</div>
+    </div>
+    <div id="game-area"></div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div class="screen" id="end-screen">
+    <h1>Game Over!</h1>
+    <p>Your Score: <strong id="final-score">0</strong></p>
+    <button onclick="startGame()">Play Again</button>
+  </div>
+
+  <script>
+    const startScreen = document.getElementById('start-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const endScreen = document.getElementById('end-screen');
+    const gameArea = document.getElementById('game-area');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const finalScoreEl = document.getElementById('final-score');
+
+    let score = 0;
+    let time = 30;
+    let interval;
+    let virusTimeout;
+
+    const clickSound = new Audio('https://www.myinstants.com/media/sounds/minecraft-click.mp3'); // Small fun sound
+
+    function startGame() {
+      score = 0;
+      time = 30;
+      scoreEl.textContent = score;
+      timerEl.textContent = time;
+      startScreen.classList.remove('active');
+      endScreen.classList.remove('active');
+      gameScreen.classList.add('active');
+      interval = setInterval(countdown, 1000);
+      spawnVirus();
+    }
+
+    function countdown() {
+      time--;
+      timerEl.textContent = time;
+      if (time <= 0) {
+        endGame();
+      }
+    }
+
+    function endGame() {
+      clearInterval(interval);
+      clearTimeout(virusTimeout);
+      gameArea.innerHTML = '';
+      finalScoreEl.textContent = score;
+      gameScreen.classList.remove('active');
+      endScreen.classList.add('active');
+    }
+
+    function spawnVirus() {
+      gameArea.innerHTML = '';
+      const virus = document.createElement('div');
+      virus.classList.add('virus');
+      virus.textContent = '🦠';
+      const size = 50;
+      const maxX = gameArea.clientWidth - size;
+      const maxY = gameArea.clientHeight - size;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      virus.style.left = `${x}px`;
+      virus.style.top = `${y}px`;
+      virus.addEventListener('click', () => {
+        virus.classList.add('bounce');
+        clickSound.currentTime = 0;
+        clickSound.play();
+        score++;
+        scoreEl.textContent = score;
+        clearTimeout(virusTimeout);
+        spawnVirus();
+      });
+      gameArea.appendChild(virus);
+      virusTimeout = setTimeout(spawnVirus, 1500);
+    }
+  </script>
+</body>
+</html>
